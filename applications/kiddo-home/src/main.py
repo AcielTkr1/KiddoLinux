@@ -1,14 +1,32 @@
 import sys
-from pathlib import Path
+import json
+import shlex
+import shutil
+import subprocess
 
+from pathlib import Path
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQuick import QQuickView
-from PySide6.QtCore import QUrl
+from PySide6.QtCore import QUrl, QObject, Slot, Signal
+from application_manager import ApplicationManager
+from progress_manager import ProgressManager
+
+
+
+
 
 app = QGuiApplication(sys.argv)
 
+launcher = ApplicationManager()
+progress_manager = ProgressManager()
+
 view = QQuickView()
 view.setResizeMode(QQuickView.ResizeMode.SizeRootObjectToView)
+
+view.rootContext().setContextProperty("appLauncher", launcher)
+view.rootContext().setContextProperty(
+    "progressManager", progress_manager
+)
 
 qml_file = (
     Path(__file__).resolve().parent.parent

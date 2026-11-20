@@ -1,0 +1,40 @@
+{
+    "applications": [
+        {
+            "name": "GCompris",
+            "command": "gcompris-qt",
+            "category": "Learn",
+            "description": "Belajar melalui berbagai permainan edukatif."
+        },
+        {
+            "name": "Tux Paint",
+            "command": "tuxpaint",
+            "category": "Create",
+            "description": "Menggambar dan berkreasi."
+        },
+        {
+            "name": "Tux Math",
+            "command": "tuxmath",
+            "category": "Learn",
+            "description": "Belajar matematika dengan permainan."
+        },
+        {
+            "name": "Tux Typing",
+            "command": "tuxtype",
+            "category": "Learn",
+            "description": "Belajar mengetik dengan menyenangkan."
+        },
+        {
+            "name": "Thonny",
+            "command": "thonny",
+            "category": "Coding",
+            "description": "Belajar pemrograman Python."
+        },
+        {
+            "name": "Python",
+            "command": "x-terminal-emulator -e python3",
+            "category": "Coding",
+            "description": "Menjalankan bahasa pemrograman Python."
+        }
+    ]
+}
