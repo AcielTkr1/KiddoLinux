@@ -4,37 +4,43 @@
             "name": "GCompris",
             "command": "gcompris-qt",
             "category": "Learn",
-            "description": "Belajar melalui berbagai permainan edukatif."
+            "description_id": "Belajar melalui berbagai permainan edukatif.",
+            "description_en": "Learn through various educational games."
         },
         {
             "name": "Tux Paint",
             "command": "tuxpaint",
             "category": "Create",
-            "description": "Menggambar dan berkreasi."
+            "description_id": "Menggambar dan berkreasi.",
+            "description_en": "Draw and unleash your creativity."
         },
         {
             "name": "Tux Math",
             "command": "tuxmath",
             "category": "Learn",
-            "description": "Belajar matematika dengan permainan."
+            "description_id": "Belajar matematika dengan permainan.",
+            "description_en": "Learn mathematics through fun games."
         },
         {
             "name": "Tux Typing",
             "command": "tuxtype",
             "category": "Learn",
-            "description": "Belajar mengetik dengan menyenangkan."
+            "description_id": "Belajar mengetik dengan menyenangkan.",
+            "description_en": "Learn typing in a fun way."
         },
         {
             "name": "Thonny",
             "command": "thonny",
             "category": "Coding",
-            "description": "Belajar pemrograman Python."
+            "description_id": "Belajar pemrograman Python.",
+            "description_en": "Learn Python programming."
         },
         {
             "name": "Python",
             "command": "x-terminal-emulator -e python3",
             "category": "Coding",
-            "description": "Menjalankan bahasa pemrograman Python."
+            "description_id": "Menjalankan bahasa pemrograman Python.",
+            "description_en": "Run the Python programming language."
         }
     ]
 }

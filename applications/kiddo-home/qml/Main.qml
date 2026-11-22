@@ -5,6 +5,8 @@ import Qt5Compat.GraphicalEffects
 
 Rectangle {
     id: root
+    
+    property string language: savedLanguage
 
     width: 1366
     height: 850
@@ -13,9 +15,6 @@ Rectangle {
     property string currentPage: "Home"
     property string pendingPage: ""
     property string selectedSetting: ""
-
-    // LANGUAGE SETTINGS
-    property string language: "id"
 
     // TRANSLATION FUNCTION
     function tx(indonesian, english) {
@@ -48,7 +47,7 @@ Rectangle {
         }
     }
 
-    property string selectedMessage: "Pilih aktivitas untuk memulai!"
+    property string selectedMessage: ""
     property var profileData: ({})
     property var progressData: ({})
 
@@ -73,17 +72,53 @@ Rectangle {
         return apps.filter(function(item) {
             var keyword = root.searchText.toLowerCase()
 
+            var description = root.language === "en"
+                ? item.description_en
+                : item.description_id
+
             return item.name.toLowerCase().includes(keyword)
-                || item.description.toLowerCase().includes(keyword)
+                || description.toLowerCase().includes(keyword)
+        }).map(function(item) {
+            var description = root.language === "en"
+                ? item.description_en
+                : item.description_id
+
+            return {
+                name: item.name,
+                icon: item.icon,
+                description: description,
+                available: item.available
+            }
         })
     }
 
     switch (currentPage) {
     case "Games":
         var games = [
-            { name: "Puzzle", icon: "🧩", description: "Asah kemampuan berpikir" },
-            { name: "Memory Game", icon: "🧠", description: "Latih daya ingat" },
-            { name: "Math Challenge", icon: "➗", description: "Tantangan matematika" }
+            {
+                name: "Puzzle",
+                icon: "🧩",
+                description: root.tx(
+                    "Asah kemampuan berpikir",
+                    "Sharpen your thinking skills"
+                )
+            },
+            {
+                name: "Memory Game",
+                icon: "🧠",
+                description: root.tx(
+                    "Latih daya ingat",
+                    "Train your memory"
+                )
+            },
+            {
+                name: "Math Challenge",
+                icon: "➗",
+                description: root.tx(
+                    "Tantangan matematika",
+                    "Math challenge"
+                )
+            }
         ]
 
         var gameKeyword = root.searchText.toLowerCase()
@@ -96,17 +131,66 @@ Rectangle {
 
     case "Library":
         return [
-            { name: "Science", icon: "🔬", description: "Materi ilmu pengetahuan" },
-            { name: "Mathematics", icon: "📐", description: "Materi matematika" },
-            { name: "Languages", icon: "🌍", description: "Belajar bahasa" },
-            { name: "Technology", icon: "🚀", description: "Mengenal teknologi" }
+            {
+                name: "Science",
+                icon: "🔬",
+                description: root.tx(
+                    "Materi ilmu pengetahuan",
+                    "Science learning materials"
+                )
+            },
+            {
+                name: "Mathematics",
+                icon: "📐",
+                description: root.tx(
+                    "Materi matematika",
+                    "Mathematics learning materials"
+                )
+            },
+            {
+                name: "Languages",
+                icon: "🌍",
+                description: root.tx(
+                    "Belajar bahasa",
+                    "Learn new languages"
+                )
+            },
+            {
+                name: "Technology",
+                icon: "🚀",
+                description: root.tx(
+                    "Mengenal teknologi",
+                    "Explore technology"
+                )
+            }
         ]
 
     case "Achievements":
         return [
-            { name: "First Explorer", icon: "🌟", description: "Memulai petualangan" },
-            { name: "Little Creator", icon: "🎨", description: "Membuat karya pertama" },
-            { name: "Code Beginner", icon: "💻", description: "Mengenal pemrograman" }
+            {
+                name: "First Explorer",
+                icon: "🌟",
+                description: root.tx(
+                    "Memulai petualangan",
+                    "Starting your adventure"
+                )
+            },
+            {
+                name: "Little Creator",
+                icon: "🎨",
+                description: root.tx(
+                    "Membuat karya pertama",
+                    "Creating your first masterpiece"
+                )
+            },
+            {
+                name: "Code Beginner",
+                icon: "💻",
+                description: root.tx(
+                    "Mengenal pemrograman",
+                    "Discovering the world of coding"
+                )
+            }
         ]
 
     case "Settings":
@@ -242,12 +326,15 @@ SequentialAnimation {
 }
 
 	Connections {
-    target: appLauncher
+        target: appLauncher
 
-    function onMessageChanged(message) {
-        root.selectedMessage = message
+        function onMessageChanged(indonesian, english) {
+            root.selectedMessage = root.tx(
+                indonesian,
+                english
+            )
+        }
     }
-}
 
     RowLayout {
         anchors.fill: parent
@@ -402,7 +489,11 @@ SequentialAnimation {
 
                         onClicked: {
                             root.changePage("Settings")
-                            root.selectedMessage = "Pengaturan Kiddo Home"
+
+                            root.selectedMessage = root.tx(
+                                "Pengaturan Kiddo Home",
+                                "Kiddo Home Settings"
+                            )
                         }
                     }
                 }
@@ -1022,37 +1113,46 @@ SequentialAnimation {
                                 }
 
                                 Text {
-                                    text: modelData.available
-                                        ? "● Terpasang"
-                                        : "● Belum terpasang"
+                                    visible: root.currentPage === "Learn"
+                                        || root.currentPage === "Create"
+                                        || root.currentPage === "Coding"
 
-                                        color: modelData.available
+                                    text: modelData.available
+                                        ? root.tx("● Terpasang", "● Installed")
+                                        : root.tx("● Belum terpasang", "● Not Installed")
+
+                                    color: modelData.available
                                         ? "#35A879"
                                         : "#E58A45"
 
-                                        font.pixelSize: 11
-                                        font.bold: true
-                                        anchors.horizontalCenter: parent.horizontalCenter
-                                    }
+                                    font.pixelSize: 11
+                                    font.bold: true
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
 
                                 Button {
-                                    text: "✓ Tandai Selesai"
+                                    text: root.tx(
+                                        "✓ Tandai Selesai",
+                                        "✓ Mark as Completed"
+                                    )
 
-                                     visible: modelData.available === true
+                                    visible: modelData.available === true
 
-                                     anchors.horizontalCenter: parent.horizontalCenter
+                                    anchors.horizontalCenter: parent.horizontalCenter
 
                                     onClicked: {
-                                                progressManager.completeActivity(
-                                               modelData.name,
-                                             root.currentPage,
-                                             20
+                                        progressManager.completeActivity(
+                                            modelData.name,
+                                            root.currentPage,
+                                            20
                                         )
 
                                         root.refreshProgress()
 
-                                        root.selectedMessage =
-                                            modelData.name + " selesai! Kamu mendapatkan 20 XP!"
+                                        root.selectedMessage = root.tx(
+                                            modelData.name + " selesai! Kamu mendapatkan 20 XP!",
+                                            modelData.name + " completed! You earned 20 XP!"
+                                        )
                                     }
                                 }
                             }
@@ -1251,7 +1351,7 @@ SequentialAnimation {
                         }
 
                         Text {
-                            text: root.selectedMessage === "Pilih aktivitas untuk memulai!"
+                            text: root.selectedMessage.length === 0
                                 ? root.tx(
                                     "Pilih aktivitas untuk memulai!",
                                     "Choose an activity to get started!"
@@ -1580,7 +1680,14 @@ SequentialAnimation {
 
                             onClicked: {
                                 root.language = "id"
-                                root.selectedMessage = "Bahasa berhasil diubah ke Indonesia!"
+
+                                settingsManager.saveLanguage("id")
+
+                                root.refreshCategoryItems()
+                                root.selectedMessage = root.tx(
+                                    "Bahasa berhasil diubah ke Indonesia!",
+                                    "Language changed to Indonesian!"
+                                )
                             }
                         }
 
@@ -1591,7 +1698,14 @@ SequentialAnimation {
 
                             onClicked: {
                                 root.language = "en"
-                                root.selectedMessage = "Language changed to English!"
+
+                                settingsManager.saveLanguage("en")
+
+                                root.refreshCategoryItems()
+                                root.selectedMessage = root.tx(
+                                    "Bahasa berhasil diubah ke Inggris!",
+                                    "Language changed to English!"
+                                )
                             }
                         }
                     }

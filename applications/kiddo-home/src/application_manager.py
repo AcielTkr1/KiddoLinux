@@ -9,7 +9,7 @@ from PySide6.QtCore import QObject, Signal, Slot
 
 class ApplicationManager(QObject):
 
-    messageChanged = Signal(str)
+    messageChanged = Signal(str, str)
 
     def __init__(self):
         super().__init__()
@@ -43,7 +43,6 @@ class ApplicationManager(QObject):
             )
 
         except (FileNotFoundError, json.JSONDecodeError, KeyError) as error:
-
             print(f"Gagal membaca daftar aplikasi: {error}")
 
     @Slot(str, result="QVariantList")
@@ -72,10 +71,15 @@ class ApplicationManager(QObject):
                 and shutil.which(command[0]) is not None
             )
 
+            description_id = application["description_id"]
+            description_en = application["description_en"]
+
             result.append({
                 "name": application["name"],
                 "icon": icons.get(application["name"], "📦"),
-                "description": application["description"],
+                "description": description_id,
+                "description_id": description_id,
+                "description_en": description_en,
                 "available": available
             })
 
@@ -88,23 +92,25 @@ class ApplicationManager(QObject):
 
         if command is None:
             self.messageChanged.emit(
-                f"{name} tidak ditemukan."
+                f"{name} tidak ditemukan.",
+                f"{name} was not found."
             )
             return
 
         try:
-
             command_parts = shlex.split(command)
 
             if not command_parts:
                 self.messageChanged.emit(
-                    f"Perintah {name} tidak valid."
+                    f"Perintah {name} tidak valid.",
+                    f"The command for {name} is invalid."
                 )
                 return
 
             if shutil.which(command_parts[0]) is None:
                 self.messageChanged.emit(
-                    f"{name} belum terpasang di sistem."
+                    f"{name} belum terpasang di sistem.",
+                    f"{name} is not installed on this system."
                 )
                 return
 
@@ -114,11 +120,12 @@ class ApplicationManager(QObject):
             )
 
             self.messageChanged.emit(
-                f"{name} berhasil dijalankan!"
+                f"{name} berhasil dijalankan!",
+                f"{name} launched successfully!"
             )
 
         except Exception as error:
-
             self.messageChanged.emit(
-                f"Gagal menjalankan {name}: {error}"
+                f"Gagal menjalankan {name}: {error}",
+                f"Failed to launch {name}: {error}"
             )
