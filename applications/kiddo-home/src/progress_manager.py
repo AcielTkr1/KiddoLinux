@@ -37,9 +37,23 @@ class ProgressManager(QObject):
                     name TEXT NOT NULL,
                     level INTEGER DEFAULT 1,
                     experience INTEGER DEFAULT 0,
-                    completed_activities INTEGER DEFAULT 0
+                    completed_activities INTEGER DEFAULT 0,
+                    avatar TEXT DEFAULT 'robot_blue'
                 )
             """)
+
+            columns = [
+                row[1]
+                for row in connection.execute(
+                    "PRAGMA table_info(profiles)"
+                ).fetchall()
+            ]
+
+            if "avatar" not in columns:
+                connection.execute("""
+                    ALTER TABLE profiles
+                    ADD COLUMN avatar TEXT DEFAULT 'robot_blue'
+                """)
 
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS activities (
@@ -81,6 +95,55 @@ class ProgressManager(QObject):
             """).fetchone()
 
             return dict(profile) if profile else {}
+
+    @Slot(str, result=bool)
+    def updateProfileName(self, new_name):
+
+        new_name = new_name.strip()
+
+        if not new_name:
+            return False
+
+        with self.connectDatabase() as connection:
+
+            connection.execute("""
+                UPDATE profiles
+                SET name = ?
+                WHERE id = (
+                    SELECT id FROM profiles LIMIT 1
+                )
+            """, (new_name,))
+
+            connection.commit()
+
+        return True
+
+    @Slot(str, result=bool)
+    def updateProfileAvatar(self, avatar):
+
+        allowed_avatars = [
+            "robot_blue",
+            "robot_pink",
+            "robot_green",
+            "robot_yellow"
+        ]
+
+        if avatar not in allowed_avatars:
+            return False
+
+        with self.connectDatabase() as connection:
+
+            connection.execute("""
+                UPDATE profiles
+                SET avatar = ?
+                WHERE id = (
+                    SELECT id FROM profiles LIMIT 1
+                )
+            """, (avatar,))
+
+            connection.commit()
+
+        return True
 
     @Slot(result="QVariantMap")
     def getProgress(self):

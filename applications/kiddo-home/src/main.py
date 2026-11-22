@@ -24,9 +24,7 @@ view = QQuickView()
 view.setResizeMode(QQuickView.ResizeMode.SizeRootObjectToView)
 
 view.rootContext().setContextProperty("appLauncher", launcher)
-view.rootContext().setContextProperty(
-    "progressManager", progress_manager
-)
+view.rootContext().setContextProperty("progressManager", progress_manager)
 
 qml_file = (
     Path(__file__).resolve().parent.parent
