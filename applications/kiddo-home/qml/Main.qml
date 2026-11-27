@@ -15,6 +15,7 @@ Rectangle {
     property string currentPage: "Home"
     property string pendingPage: ""
     property string selectedSetting: ""
+    property bool showActivityToast: false
 
     // TRANSLATION FUNCTION
     function tx(indonesian, english) {
@@ -50,11 +51,22 @@ Rectangle {
     property string selectedMessage: ""
     property var profileData: ({})
     property var progressData: ({})
+    property var activityHistory: []
 
     function refreshProgress() {
         profileData = progressManager.getProfile()
         progressData = progressManager.getProgress()
+        activityHistory = progressManager.getActivityHistory()
     }
+
+    function isActivityCompleted(name, category) {
+        return progressManager.isActivityCompleted(name, category)
+    }
+
+    function completeActivity(name, category, xp) {
+        return progressManager.completeActivity(name, category, xp)
+    }
+
     property string searchText: ""
     property var displayedItems: []
     property int appRefreshCounter: 0
@@ -96,7 +108,7 @@ Rectangle {
     case "Games":
         var games = [
             {
-                name: "Puzzle",
+                name: root.tx("Teka-teki", "Puzzle"),
                 icon: "🧩",
                 description: root.tx(
                     "Asah kemampuan berpikir",
@@ -104,7 +116,7 @@ Rectangle {
                 )
             },
             {
-                name: "Memory Game",
+                name: root.tx("Permainan Ingatan", "Memory Game") ,
                 icon: "🧠",
                 description: root.tx(
                     "Latih daya ingat",
@@ -112,7 +124,7 @@ Rectangle {
                 )
             },
             {
-                name: "Math Challenge",
+                name: root.tx("Tantangan Matematika", "Math Challenge"),
                 icon: "➗",
                 description: root.tx(
                     "Tantangan matematika",
@@ -132,7 +144,7 @@ Rectangle {
     case "Library":
         return [
             {
-                name: "Science",
+                name: root.tx ("Sains", "Science"),
                 icon: "🔬",
                 description: root.tx(
                     "Materi ilmu pengetahuan",
@@ -140,7 +152,7 @@ Rectangle {
                 )
             },
             {
-                name: "Mathematics",
+                name: root.tx("Matematika", "Mathematics"),
                 icon: "📐",
                 description: root.tx(
                     "Materi matematika",
@@ -148,7 +160,7 @@ Rectangle {
                 )
             },
             {
-                name: "Languages",
+                name: root.tx("Bahasa", "Languages"),
                 icon: "🌍",
                 description: root.tx(
                     "Belajar bahasa",
@@ -156,7 +168,7 @@ Rectangle {
                 )
             },
             {
-                name: "Technology",
+                name: root.tx("Teknologi", "Technology"),
                 icon: "🚀",
                 description: root.tx(
                     "Mengenal teknologi",
@@ -168,7 +180,7 @@ Rectangle {
     case "Achievements":
         return [
             {
-                name: "First Explorer",
+                name: root.tx("Penjelajah Pertama", "First Explorer"),
                 icon: "🌟",
                 description: root.tx(
                     "Memulai petualangan",
@@ -176,7 +188,7 @@ Rectangle {
                 )
             },
             {
-                name: "Little Creator",
+                name: root.tx("Kreator Cilik", "Little Creator"),
                 icon: "🎨",
                 description: root.tx(
                     "Membuat karya pertama",
@@ -184,7 +196,7 @@ Rectangle {
                 )
             },
             {
-                name: "Code Beginner",
+                name: 	root.tx("Pemula Coding", "Code Beginner"),
                 icon: "💻",
                 description: root.tx(
                     "Mengenal pemrograman",
@@ -301,7 +313,7 @@ SequentialAnimation {
             root.currentPage = root.pendingPage
             root.searchText = ""
             root.refreshCategoryItems()
-            root.selectedMessage = "Pilih aktivitas untuk memulai!"
+            root.selectedMessage = ""
         }
     }
 
@@ -928,7 +940,7 @@ SequentialAnimation {
                             }
 
                             Text {
-                                text: modelData.name
+                                text: root.pageLabel(modelData.name)
                                 font.pixelSize: 19
                                 font.bold: true
                                 color: "white"
@@ -964,8 +976,9 @@ SequentialAnimation {
                     
                     anchors.fill : parent
 
-                    visible:    root.currentPage !== "Home"
-                                && root.displayedItems.length > 0
+                    visible: root.currentPage !== "Home"
+                            && root.currentPage !== "Achievements"
+                            && root.displayedItems.length > 0
                                 
                     onVisibleChanged: {
                         if (visible) {
@@ -1072,8 +1085,11 @@ SequentialAnimation {
 
                         MouseArea {
                             id: appCardMouseArea
+                            z: 0
 
                             anchors.fill: parent
+                            anchors.bottomMargin: modelData.available === true ? 75 : 0
+
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
 
@@ -1131,28 +1147,50 @@ SequentialAnimation {
                                 }
 
                                 Button {
-                                    text: root.tx(
-                                        "✓ Tandai Selesai",
-                                        "✓ Mark as Completed"
-                                    )
+                                    z: 1
+
+                                    text: {
+                                        var completedCount = root.progressData.completedActivities
+
+                                        return root.isActivityCompleted(
+                                            modelData.name,
+                                            root.currentPage
+                                        )
+                                        ? root.tx("✓ Selesai", "✓ Completed")
+                                        : root.tx("Tandai Selesai", "Mark as Completed")
+                                    }
 
                                     visible: modelData.available === true
+
+                                    enabled: {
+                                        var completedCount = root.progressData.completedActivities
+
+                                        return !root.isActivityCompleted(
+                                            modelData.name,
+                                            root.currentPage
+                                        )
+                                    }
 
                                     anchors.horizontalCenter: parent.horizontalCenter
 
                                     onClicked: {
-                                        progressManager.completeActivity(
+                                        var success = root.completeActivity(
                                             modelData.name,
                                             root.currentPage,
                                             20
                                         )
 
-                                        root.refreshProgress()
+                                        if (success) {
+                                            root.refreshProgress()
 
-                                        root.selectedMessage = root.tx(
-                                            modelData.name + " selesai! Kamu mendapatkan 20 XP!",
-                                            modelData.name + " completed! You earned 20 XP!"
-                                        )
+                                            root.selectedMessage = root.tx(
+                                                modelData.name + " selesai! Kamu mendapatkan 20 XP!",
+                                                modelData.name + " completed! You earned 20 XP!"
+                                            )
+
+                                            root.showActivityToast = true
+                                            activityToastTimer.restart()
+                                        }
                                     }
                                 }
                             }
@@ -1167,6 +1205,7 @@ SequentialAnimation {
                     anchors.fill: parent
 
                     visible: root.currentPage !== "Home"
+                            && root.currentPage !== "Achievements"
                             && root.displayedItems.length === 0
 
                     radius: 24
@@ -1266,11 +1305,429 @@ SequentialAnimation {
                         }
                     }
                 }
+
+                // ACTIVITY HISTORY
+                Rectangle {
+                    id: historyPanel
+
+                    anchors.fill: parent
+
+                    visible: root.currentPage === "Achievements"
+
+                    color: "transparent"
+
+                    ScrollView {
+                        id: historyScroll
+
+                        anchors.fill: parent
+                        clip: true
+
+                        contentWidth: availableWidth
+
+                        onVisibleChanged: {
+                            if (visible) {
+                                Qt.callLater(function() {
+                                    historyScroll.contentItem.contentY = 0
+                                })
+                            }
+                        }
+                        ColumnLayout {
+                            width: historyScroll.availableWidth
+                            spacing: 14
+
+                            // HEADER
+                            Text {
+                                text: root.tx(
+                                    "🏆 Perjalanan Hebatmu!",
+                                    "🏆 Your Amazing Journey!"
+                                )
+
+                                font.pixelSize: 23
+                                font.bold: true
+                                color: "#24477E"
+
+                                Layout.fillWidth: true
+                            }
+
+                            Text {
+                                text: root.tx(
+                                    "Lihat semua aktivitas yang sudah kamu selesaikan.",
+                                    "See all the activities you have completed."
+                                )
+
+                                font.pixelSize: 13
+                                color: "#71839B"
+
+                                Layout.fillWidth: true
+                            }
+
+                            // ACHIEVEMENT HERO CARD
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 155
+
+                                radius: 24
+                                border.color: "#B9D8FF"
+                                border.width: 1
+
+                                gradient: Gradient {
+                                    GradientStop {
+                                        position: 0.0
+                                        color: "#3987F6"
+                                    }
+
+                                    GradientStop {
+                                        position: 1.0
+                                        color: "#7459D9"
+                                    }
+                                }
+
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.margins: 20
+                                    spacing: 18
+
+                                    // ROBOT MASCOT
+                                    Rectangle {
+                                        Layout.preferredWidth: 105
+                                        Layout.preferredHeight: 105
+
+                                        radius: 28
+                                        color: "#FFFFFF"
+
+                                        Text {
+                                            anchors.centerIn: parent
+
+                                            text: {
+                                                var avatar = root.profileData.avatar || "robot_blue"
+
+                                                if (avatar === "robot_pink")
+                                                    return "👩‍🚀"
+                                                else if (avatar === "robot_green")
+                                                    return "👽"
+                                                else if (avatar === "robot_yellow")
+                                                    return "🧑‍🚀"
+                                                else
+                                                    return "🤖"
+                                            }
+
+                                            font.pixelSize: 65
+                                        }
+                                    }
+
+                                    // PROFILE INFORMATION
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 7
+
+                                        Text {
+                                            text: root.tx(
+                                                "HEBAT SEKALI!",
+                                                "YOU ARE AMAZING!"
+                                            )
+
+                                            font.pixelSize: 11
+                                            font.bold: true
+                                            color: "#DCEBFF"
+                                        }
+
+                                        Text {
+                                            text: root.profileData.name
+                                                || root.tx("Teman Hebat", "Super Friend")
+
+                                            font.pixelSize: 23
+                                            font.bold: true
+                                            color: "white"
+
+                                            Layout.fillWidth: true
+                                            elide: Text.ElideRight
+                                        }
+
+                                        Text {
+                                            text: "⭐ "
+                                                + root.tx("Level ", "Level ")
+                                                + (root.progressData.level || 1)
+
+                                            font.pixelSize: 17
+                                            font.bold: true
+                                            color: "#FFE89A"
+                                        }
+
+                                        Text {
+                                            text: root.tx(
+                                                "Terus belajar dan kumpulkan bintang!",
+                                                "Keep learning and collecting stars!"
+                                            )
+
+                                            font.pixelSize: 12
+                                            color: "#EAF4FF"
+                                        }
+                                    }
+
+                                    // TOTAL XP
+                                    Rectangle {
+                                        Layout.preferredWidth: 115
+                                        Layout.preferredHeight: 85
+
+                                        radius: 18
+                                        color: "#FFFFFF"
+                                        opacity: 0.95
+
+                                        Column {
+                                            anchors.centerIn: parent
+                                            spacing: 5
+
+                                            Text {
+                                                text: "⚡"
+                                                font.pixelSize: 22
+                                                anchors.horizontalCenter: parent.horizontalCenter
+                                            }
+
+                                            Text {
+                                                text: (root.progressData.experience || 0)
+                                                    + " XP"
+
+                                                font.pixelSize: 20
+                                                font.bold: true
+                                                color: "#3987F6"
+
+                                                anchors.horizontalCenter: parent.horizontalCenter
+                                            }
+
+                                            Text {
+                                                text: root.tx("Total XP", "Total XP")
+                                                font.pixelSize: 11
+                                                color: "#71839B"
+
+                                                anchors.horizontalCenter: parent.horizontalCenter
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // COMPLETED ACTIVITIES STATISTIC
+                            Rectangle {
+                                visible: root.currentPage === "Achievements"
+
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 85
+
+                                radius: 20
+                                color: "white"
+                                border.color: "#DCEBFF"
+                                border.width: 1
+
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.margins: 18
+                                    spacing: 15
+
+                                    Rectangle {
+                                        Layout.preferredWidth: 50
+                                        Layout.preferredHeight: 50
+
+                                        radius: 15
+                                        color: "#EAF4FF"
+
+                                        Text {
+                                            anchors.centerIn: parent
+                                            text: "🏆"
+                                            font.pixelSize: 27
+                                        }
+                                    }
+
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 4
+                                            font.bold: true
+                                            color: "#24477E"
+                                        }
+
+                                        Text {
+                                            text: root.tx(
+                                                "Terus kumpulkan pencapaianmu!",
+                                                "Keep collecting your achievements!"
+                                            )
+
+                                            font.pixelSize: 11
+                                            color: "#71839B"
+                                        }
+                                    }
+
+                                    Text {
+                                        text: String(
+                                            root.progressData.completedActivities || 0
+                                        )
+
+                                        font.pixelSize: 30
+                                        font.bold: true
+                                        color: "#3987F6"
+                                    }
+                                }
+                            }
+
+                            // EMPTY HISTORY
+                            Rectangle {
+                                visible: root.activityHistory.length === 0
+
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 190
+
+                                radius: 20
+                                color: "white"
+
+                                Column {
+                                    anchors.centerIn: parent
+                                    spacing: 12
+
+                                    Text {
+                                        text: "🤖"
+                                        font.pixelSize: 48
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                    }
+
+                                    Text {
+                                        text: root.tx(
+                                            "Belum ada aktivitas!",
+                                            "No activities yet!"
+                                        )
+
+                                        font.pixelSize: 18
+                                        font.bold: true
+                                        color: "#24477E"
+
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                    }
+
+                                    Text {
+                                        text: root.tx(
+                                            "Ayo selesaikan aktivitas pertamamu!",
+                                            "Complete your first activity!"
+                                        )
+
+                                        font.pixelSize: 13
+                                        color: "#71839B"
+
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                    }
+                                }
+                            }
+
+                            // HISTORY LIST
+                            Repeater {
+                                model: root.activityHistory
+
+                                delegate: Rectangle {
+                                    required property var modelData
+
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 95
+
+                                    radius: 18
+                                    color: "white"
+
+                                    border.color: "#DCEBFF"
+                                    border.width: 1
+
+                                    RowLayout {
+                                        anchors.fill: parent
+                                        anchors.margins: 16
+                                        spacing: 14
+
+                                        // ACTIVITY ICON
+                                        Rectangle {
+                                            Layout.preferredWidth: 58
+                                            Layout.preferredHeight: 58
+
+                                            radius: 16
+                                            color: "#EAF4FF"
+
+                                            Text {
+                                                anchors.centerIn: parent
+
+                                                text: modelData.category === "Coding"
+                                                    ? "💻"
+                                                    : modelData.category === "Create"
+                                                        ? "🎨"
+                                                        : "📚"
+
+                                                font.pixelSize: 29
+                                            }
+                                        }
+
+                                        // ACTIVITY INFORMATION
+                                        ColumnLayout {
+                                            Layout.fillWidth: true
+                                            spacing: 5
+
+                                            Text {
+                                                text: modelData.name
+
+                                                font.pixelSize: 16
+                                                font.bold: true
+                                                color: "#24477E"
+
+                                                Layout.fillWidth: true
+                                            }
+
+                                            Text {
+                                                text: {
+                                                    var date = new Date(modelData.date)
+
+                                                    var day = date.getDate()
+                                                    var months = [
+                                                        "Jan", "Feb", "Mar", "Apr",
+                                                        "Mei", "Jun", "Jul", "Agu",
+                                                        "Sep", "Okt", "Nov", "Des"
+                                                    ]
+
+                                                    var month = months[date.getMonth()]
+                                                    var year = date.getFullYear()
+
+                                                    return modelData.category
+                                                        + " • "
+                                                        + day + " " + month + " " + year
+                                                }
+
+                                                font.pixelSize: 11
+                                                color: "#71839B"
+
+                                                Layout.fillWidth: true
+                                            }
+                                        }
+
+                                        // XP BADGE
+                                        Rectangle {
+                                            Layout.preferredWidth: 85
+                                            Layout.preferredHeight: 38
+
+                                            radius: 12
+                                            color: "#FFF3D6"
+
+                                            Text {
+                                                anchors.centerIn: parent
+
+                                                text: "+" + modelData.xp + " XP"
+
+                                                font.pixelSize: 13
+                                                font.bold: true
+                                                color: "#D99A20"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
 
             // LEVEL PROGRESS
             Rectangle {
+                visible: root.currentPage === "Achievements"
+
                 Layout.fillWidth: true
                 Layout.preferredHeight: 95
 
@@ -1336,6 +1793,8 @@ SequentialAnimation {
 
                 // STATUS PANEL
                 Rectangle {
+                    visible: root.currentPage === "Achievements"
+
                     Layout.fillWidth: true
                     Layout.preferredHeight: 75
                     radius: 20
@@ -1365,12 +1824,12 @@ SequentialAnimation {
                         }
 
                         Text {
-                            text: "🌟 Level "
-                                + (root.progressData.level || 1)
-                                + " | "
-                                + (root.progressData.experience || 0)
-                                + " XP"
-
+                            text: "🌟 "
+                            + root.tx("Level ", "Level ")
+                            + (root.progressData.level || 1)
+                            + " | "
+                            + (root.progressData.experience || 0)
+                            + " XP"
                             font.pixelSize: 17
                             font.bold: true
                             color: "#3987F6"
@@ -1762,4 +2221,48 @@ SequentialAnimation {
                     }
                 }
             }
+
+        // ACTIVITY NOTIFICATION TIMER
+        Timer {
+            id: activityToastTimer
+            interval: 3000
+
+            onTriggered: {
+                root.showActivityToast = false
+            }
+        }
+
+        // ACTIVITY NOTIFICATION
+        Rectangle {
+            id: activityToast
+
+            visible: root.showActivityToast
+
+            width: 460
+            height: 75
+
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: parent.top
+            anchors.topMargin: 25
+
+            radius: 18
+            color: "#24477E"
+
+            z: 9999
+
+            Text {
+                anchors.fill: parent
+                anchors.margins: 15
+
+                text: "🤖  " + root.selectedMessage
+
+                color: "white"
+                font.pixelSize: 15
+                font.bold: true
+
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                wrapMode: Text.WordWrap
+            }
+        }
 }

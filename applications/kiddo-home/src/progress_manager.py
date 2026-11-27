@@ -77,7 +77,7 @@ class ProgressManager(QObject):
                 cursor.execute("""
                     INSERT INTO profiles (name)
                     VALUES (?)
-                """, ("Teman Hebat",))
+                """, ("Super Friend",))
 
             connection.commit()
 
@@ -162,8 +162,14 @@ class ProgressManager(QObject):
             "nextLevelXP": 100,
             "progressPercent": experience % 100
         }
-    @Slot(str, str, int)
+    @Slot(str, str, int, result=bool)
     def completeActivity(self, name, category, experience):
+
+        if not name.strip() or not category.strip():
+            return False
+
+        if experience <= 0:
+            return False
 
         with self.connectDatabase() as connection:
 
@@ -174,13 +180,32 @@ class ProgressManager(QObject):
             """).fetchone()
 
             if profile is None:
-                return
+                return False
 
             profile_id, current_experience = profile
 
+            # Periksa apakah aktivitas sudah pernah diselesaikan
+            existing_activity = connection.execute("""
+                SELECT id
+                FROM activities
+                WHERE profile_id = ?
+                AND activity_name = ?
+                AND category = ?
+                LIMIT 1
+            """, (
+                profile_id,
+                name,
+                category
+            )).fetchone()
+
+            if existing_activity is not None:
+                return False
+
+            # Hitung XP dan level baru
             new_experience = current_experience + experience
             new_level = (new_experience // 100) + 1
 
+            # Simpan riwayat aktivitas
             connection.execute("""
                 INSERT INTO activities (
                     profile_id,
@@ -196,6 +221,7 @@ class ProgressManager(QObject):
                 experience
             ))
 
+            # Perbarui progres profil
             connection.execute("""
                 UPDATE profiles
                 SET experience = ?,
@@ -209,3 +235,73 @@ class ProgressManager(QObject):
             ))
 
             connection.commit()
+
+        return True
+
+    @Slot(str, str, result=bool)
+    def isActivityCompleted(self, name, category):
+
+        with self.connectDatabase() as connection:
+
+            profile = connection.execute("""
+                SELECT id
+                FROM profiles
+                LIMIT 1
+            """).fetchone()
+
+            if profile is None:
+                return False
+
+            profile_id = profile[0]
+
+            activity = connection.execute("""
+                SELECT id
+                FROM activities
+                WHERE profile_id = ?
+                AND activity_name = ?
+                AND category = ?
+                LIMIT 1
+            """, (
+                profile_id,
+                name,
+                category
+            )).fetchone()
+
+            return activity is not None
+
+    @Slot(result="QVariantList")
+    def getActivityHistory(self):
+
+        with self.connectDatabase() as connection:
+
+            profile = connection.execute("""
+                SELECT id
+                FROM profiles
+                LIMIT 1
+            """).fetchone()
+
+            if profile is None:
+                return []
+
+            profile_id = profile[0]
+
+            activities = connection.execute("""
+                SELECT
+                    activity_name,
+                    category,
+                    experience_earned,
+                    completed_at
+                FROM activities
+                WHERE profile_id = ?
+                ORDER BY completed_at DESC
+            """, (profile_id,)).fetchall()
+
+            return [
+                {
+                    "name": activity[0],
+                    "category": activity[1],
+                    "xp": activity[2],
+                    "date": activity[3]
+                }
+                for activity in activities
+            ]

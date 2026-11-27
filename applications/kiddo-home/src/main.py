@@ -51,6 +51,12 @@ view.rootContext().setContextProperty("appLauncher", launcher)
 view.rootContext().setContextProperty("progressManager", progress_manager)
 view.rootContext().setContextProperty("savedLanguage", saved_language)
 view.rootContext().setContextProperty("settingsManager", settings_manager)
+print("ProgressManager Python:", progress_manager)
+print("ProgressManager QML Context:", view.rootContext().contextProperty("progressManager"))
+print(
+    "ProgressManager tersedia:",
+    view.rootContext().contextProperty("progressManager") is not None
+)
 
 qml_file = (
     Path(__file__).resolve().parent.parent

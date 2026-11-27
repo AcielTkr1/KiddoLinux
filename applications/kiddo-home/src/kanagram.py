@@ -1,52 +1,200 @@
-
 import tkinter as tk
 import random
+import configparser
+import os
 
+from pathlib import Path
+
+# ==================================
+# PENGATURAN BAHASA KIDDO HOME
+# ==================================
+
+def baca_bahasa():
+
+    config = configparser.ConfigParser()
+
+    config_dir = Path(
+        os.environ.get(
+            "XDG_CONFIG_HOME",
+            Path.home() / ".config"
+        )
+    )
+
+    config_file = config_dir / "KiddoLinux" / "KiddoHome.conf"
+
+    config.read(config_file)
+
+    bahasa = config.get(
+        "General",
+        "language",
+        fallback="id"
+    )
+
+    return bahasa
+
+
+bahasa = baca_bahasa()
+
+
+def tx(indonesia, english):
+    if bahasa == "en":
+        return english
+
+    return indonesia
 # ==================================
 # 1. DATA SOAL DAN PETUNJUK
 # ==================================
 
 data = {
-    "APEL": "Buah berwarna merah atau hijau",
-    "BUKU": "Benda yang digunakan untuk membaca",
-    "MEJA": "Tempat untuk menulis",
-    "KUCING": "Hewan yang suka mengeong",
-    "BUNGA": "Tumbuhan yang memiliki kelopak indah",
-    "PISANG": "Buah yang berwarna kuning",
-    "SEKOLAH": "Tempat untuk belajar",
-    "MOBIL": "Kendaraan yang memiliki empat roda",
-    "GITAR": "Alat musik yang dimainkan dengan dipetik",
-    "MATAHARI": "Benda langit yang memberikan cahaya",
-    "MATA": "Indra yang digunakan untuk melihat",
-    "TANGAN": "Anggota tubuh yangdigumakan untuk memegang",
-    "PELANGI": "Fenomena alam dengan banyak warna",
-    "LAUT": "Perairan luas yang memiliki air asin",
-    "KERETA": "Kendaraan yang berjalan di atas rel",
-    "PESAWAT": "Kendaraan yang terbang di udara",
-    "SEPEDA": "Kendaraan roda dua yang dikayuh",
-    "PERAHU": "Kendaraan yang digunakan di perairan",
-    "BUS": "Kendaraan umum yang mengangkut banyak penumpang",
-    "KAPAL": "Kendaraan besar yang berlayar di laut",
-    "MOTOR": "Kendaraan roda dua yang menggunakan mesin",
-    "AMBULANS": "Kendaraan untuk membawa orang sakit",
-    "SEPAKBOLA": "Olahraga yang dimainkan dengan menendang bola",
-    "BULUTANGKIS": "Olahraga yang menggunakan raket dan kok",
-    "RENANG": "Olahraga yang dilakukan di dalam air",
-    "VOLI": "Olahraga yang menggunakan bola dan net",
-    "BASKET": "Olahraga yang memasukkan bola ke keranjang",
-    "LARI": "Olahraga yang dilakukan dengan bergerak cepat menggunakan kaki",
-    "PANAH": "Olahraga yang menggunakan busur dan anak panah",
-    "DOKTER": "Orang yang bertugas mengobati orang sakit",
-    "GURU": "Orang yang mengajar murid di sekolah",
-    "PILOT": "Orang yang bertugas menerbangkan pesawat",
-    "PETANI": "Orang yang bekerja menanam tanaman",
-    "POLISI": "Orang yang bertugas menjaga keamanan",
-    "NELAYAN": "Orang yang bekerja menangkap ikan di laut",
-    "KOKI": "Orang yang bertugas memasak makanan",
-    "PEMADAM": "Orang yang bertugas memadamkan kebakaran"
-
-
+    "APEL": {
+        "id": "Buah berwarna merah atau hijau",
+        "en": "A fruit that can be red or green"
+    },
+    "BUKU": {
+        "id": "Benda yang digunakan untuk membaca",
+        "en": "Something you use to read"
+    },
+    "MEJA": {
+        "id": "Tempat untuk menulis",
+        "en": "Furniture used for writing"
+    },
+    "KUCING": {
+        "id": "Hewan yang suka mengeong",
+        "en": "An animal that likes to meow"
+    },
+    "BUNGA": {
+        "id": "Tumbuhan yang memiliki kelopak indah",
+        "en": "A plant with beautiful petals"
+    },
+    "PISANG": {
+        "id": "Buah yang berwarna kuning",
+        "en": "A fruit that is yellow"
+    },
+    "SEKOLAH": {
+        "id": "Tempat untuk belajar",
+        "en": "A place where students learn"
+    },
+    "MOBIL": {
+        "id": "Kendaraan yang memiliki empat roda",
+        "en": "A vehicle with four wheels"
+    },
+    "GITAR": {
+        "id": "Alat musik yang dimainkan dengan dipetik",
+        "en": "A musical instrument played by plucking strings"
+    },
+    "MATAHARI": {
+        "id": "Benda langit yang memberikan cahaya",
+        "en": "A celestial object that gives us light"
+    },
+    "MATA": {
+        "id": "Indra yang digunakan untuk melihat",
+        "en": "An organ used for seeing"
+    },
+    "TANGAN": {
+        "id": "Anggota tubuh yang digunakan untuk memegang",
+        "en": "A body part used for holding things"
+    },
+    "PELANGI": {
+        "id": "Fenomena alam dengan banyak warna",
+        "en": "A natural phenomenon with many colors"
+    },
+    "LAUT": {
+        "id": "Perairan luas yang memiliki air asin",
+        "en": "A large body of salt water"
+    },
+    "KERETA": {
+        "id": "Kendaraan yang berjalan di atas rel",
+        "en": "A vehicle that travels on railway tracks"
+    },
+    "PESAWAT": {
+        "id": "Kendaraan yang terbang di udara",
+        "en": "A vehicle that flies in the sky"
+    },
+    "SEPEDA": {
+        "id": "Kendaraan roda dua yang dikayuh",
+        "en": "A two-wheeled vehicle powered by pedaling"
+    },
+    "PERAHU": {
+        "id": "Kendaraan yang digunakan di perairan",
+        "en": "A small vehicle used on water"
+    },
+    "BUS": {
+        "id": "Kendaraan umum yang mengangkut banyak penumpang",
+        "en": "A public vehicle that carries many passengers"
+    },
+    "KAPAL": {
+        "id": "Kendaraan besar yang berlayar di laut",
+        "en": "A large vehicle that sails on the sea"
+    },
+    "MOTOR": {
+        "id": "Kendaraan roda dua yang menggunakan mesin",
+        "en": "A two-wheeled vehicle with an engine"
+    },
+    "AMBULANS": {
+        "id": "Kendaraan untuk membawa orang sakit",
+        "en": "A vehicle used to transport sick people"
+    },
+    "SEPAKBOLA": {
+        "id": "Olahraga yang dimainkan dengan menendang bola",
+        "en": "A sport played by kicking a ball"
+    },
+    "BULUTANGKIS": {
+        "id": "Olahraga yang menggunakan raket dan kok",
+        "en": "A sport played with a racket and a shuttlecock"
+    },
+    "RENANG": {
+        "id": "Olahraga yang dilakukan di dalam air",
+        "en": "A sport performed in water"
+    },
+    "VOLI": {
+        "id": "Olahraga yang menggunakan bola dan net",
+        "en": "A sport played with a ball and a net"
+    },
+    "BASKET": {
+        "id": "Olahraga yang memasukkan bola ke keranjang",
+        "en": "A sport where players throw a ball into a hoop"
+    },
+    "LARI": {
+        "id": "Olahraga yang dilakukan dengan bergerak cepat menggunakan kaki",
+        "en": "A sport that involves moving quickly on foot"
+    },
+    "PANAH": {
+        "id": "Olahraga yang menggunakan busur dan anak panah",
+        "en": "A sport that uses a bow and arrows"
+    },
+    "DOKTER": {
+        "id": "Orang yang bertugas mengobati orang sakit",
+        "en": "A person who treats sick people"
+    },
+    "GURU": {
+        "id": "Orang yang mengajar murid di sekolah",
+        "en": "A person who teaches students at school"
+    },
+    "PILOT": {
+        "id": "Orang yang bertugas menerbangkan pesawat",
+        "en": "A person who flies an aircraft"
+    },
+    "PETANI": {
+        "id": "Orang yang bekerja menanam tanaman",
+        "en": "A person who grows crops"
+    },
+    "POLISI": {
+        "id": "Orang yang bertugas menjaga keamanan",
+        "en": "A person who helps keep people safe"
+    },
+    "NELAYAN": {
+        "id": "Orang yang bekerja menangkap ikan di laut",
+        "en": "A person who catches fish in the sea"
+    },
+    "KOKI": {
+        "id": "Orang yang bertugas memasak makanan",
+        "en": "A person whose job is to cook food"
+    },
+    "PEMADAM": {
+        "id": "Orang yang bertugas memadamkan kebakaran",
+        "en": "A person whose job is to put out fires"
     }
+}
 
 # ==================================
 # 2. VARIABEL PERMAINAN
@@ -117,7 +265,7 @@ def soal_baru():
 
     # Menampilkan huruf dan petunjuk
     soal.config(text="  ".join(huruf))
-    petunjuk.config(text=data[jawaban])
+    petunjuk.config(text=data[jawaban][bahasa])
 
     # Mengosongkan kolom jawaban
     input_jawaban.delete(0, tk.END)
