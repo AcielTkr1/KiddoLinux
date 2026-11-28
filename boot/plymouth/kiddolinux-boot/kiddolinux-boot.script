@@ -1,0 +1,85 @@
+Window.SetBackgroundTopColor(0.10, 0.35, 0.65);
+Window.SetBackgroundBottomColor(0.20, 0.55, 0.85);
+
+screen_w = Window.GetWidth();
+screen_h = Window.GetHeight();
+
+raw_bg = Image("Wallpaper 16.9.jpg");
+if (raw_bg) {
+    bg_img = raw_bg.Scale(screen_w, screen_h);
+    bg_sprite = Sprite(bg_img);
+    bg_sprite.SetX(0);
+    bg_sprite.SetY(0);
+    bg_sprite.SetZ(0);
+}
+
+logo_bottom_y = screen_h * 0.5;
+raw_logo = Image("Logo.png");
+if (raw_logo) {
+    if (raw_logo.GetWidth() > screen_w * 0.35) {
+        scale = (screen_w * 0.35) / raw_logo.GetWidth();
+        logo_img = raw_logo.Scale(raw_logo.GetWidth() * scale, raw_logo.GetHeight() * scale);
+    } else {
+        logo_img = raw_logo;
+    }
+
+    logo_x = (screen_w - logo_img.GetWidth()) / 2;
+    logo_y = (screen_h - logo_img.GetHeight()) / 2 - (screen_h * 0.08);
+    logo_sprite = Sprite(logo_img);
+    logo_sprite.SetX(logo_x);
+    logo_sprite.SetY(logo_y);
+    logo_sprite.SetZ(10);
+    logo_bottom_y = logo_y + logo_img.GetHeight();
+}
+
+spinner_size = 48;
+spinner_x = (screen_w - spinner_size) / 2;
+spinner_y = logo_bottom_y + 24;
+spinner_sprite = Sprite();
+spinner_sprite.SetX(spinner_x);
+spinner_sprite.SetY(spinner_y);
+spinner_sprite.SetZ(20);
+
+raw_spinner = Image("spinner.png");
+spinner_base = NULL;
+if (raw_spinner) {
+    spinner_base = raw_spinner.Scale(spinner_size, spinner_size);
+    spinner_sprite.SetImage(spinner_base);
+}
+
+log_sprite = Sprite();
+log_sprite.SetZ(20);
+
+fun update_log_text(text) {
+    if (!text || text == "") {
+        text = "Starting KiddoLinux...";
+    }
+    if (text.Length > 75) {
+        text = text.SubString(0, 72) + "...";
+    }
+    txt_img = Image.Text(text, 1.0, 1.0, 1.0, 1.0, "Sans 11");
+    if (txt_img) {
+        txt_x = (screen_w - txt_img.GetWidth()) / 2;
+        txt_y = spinner_y + spinner_size + 14;
+        log_sprite.SetImage(txt_img);
+        log_sprite.SetX(txt_x);
+        log_sprite.SetY(txt_y);
+    }
+}
+
+update_log_text("Starting KiddoLinux...");
+Plymouth.SetUpdateStatusFunction(update_log_text);
+
+angle = 0;
+fun refresh_callback() {
+    if (spinner_base) {
+        angle += 0.12;
+        if (angle >= 6.2831853) {
+            angle -= 6.2831853;
+        }
+        rotated = spinner_base.Rotate(angle);
+        spinner_sprite.SetImage(rotated);
+    }
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);

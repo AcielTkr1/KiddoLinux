@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=KiddoLinux Boot
+Description=Custom boot splash theme for KiddoLinux
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/kiddolinux-boot
+ScriptFile=/usr/share/plymouth/themes/kiddolinux-boot/kiddolinux-boot.script
